@@ -1,0 +1,7 @@
+# dsh-mcp-market-hub bundle patch: mounts the plugin into the profile layer stack.
+# Name must stay the package name; id is the row users override.
+# 0.2.0: panel is a standalone ui/index.html served by the /dsh-mcp-market-hub/ui route.
+# (this comment is bumped to make the profile watcher re-mount the bundle)
+- insert:
+    - id: mcp-market-hub
+      name: 'dsh-mcp-market-hub'

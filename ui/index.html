@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP 市场</title>
+<link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.8v5.4M12 14.8v5.4M3.8 12h5.4M14.8 12h5.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <b>MCP 市场</b>
+    <span class="tag">两源聚合</span>
+  </div>
+  <div class="top-actions">
+    <button id="btn-refresh" class="ghost" type="button">刷新</button>
+    <button id="btn-web" class="ghost" type="button">内嵌网页</button>
+    <button id="btn-theme" class="ghost icon" type="button" title="切换主题">◑</button>
+  </div>
+</header>
+<div class="searchbar">
+  <input id="q" type="search" placeholder="搜索 MCP（默认两个市场一起搜）" autocomplete="off">
+  <button id="btn-search" type="button">搜索</button>
+</div>
+<main class="layout">
+  <aside id="rail" class="rail"></aside>
+  <section id="main" class="main"></section>
+</main>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" hidden></div>
+<script src="./app.js"></script>
+</body>
+</html>
