@@ -1,5 +1,7 @@
 # dsh-mcp-market-hub
 
+[![npm](https://img.shields.io/npm/v/dsh-mcp-market-hub)](https://www.npmjs.com/package/dsh-mcp-market-hub) [![license](https://img.shields.io/npm/l/dsh-mcp-market-hub)](LICENSE)
+
 把两个 MCP 市场聚合进 DSH 侧栏，**按分类挑一个就装进本机 DSH**：**MCP Market（https://mcpmarket.cn）** 与 **魔搭 ModelScope MCP 广场**。
 
 ## 界面
