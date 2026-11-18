@@ -1,6 +1,6 @@
 {
   "name": "dsh-mcp-market-hub",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "type": "module",
   "description": "Browse and install MCP servers from mcpmarket.cn and ModelScope (魔搭) inside DSH — installs register live through DSH's built-in MCP manager.",
   "license": "MIT",

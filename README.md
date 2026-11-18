@@ -8,11 +8,11 @@
 
 | 市场首页 | 详情抽屉 |
 | --- | --- |
-| ![市场首页](screenshots/01-market.png) | ![详情抽屉](screenshots/02-detail.png) |
+| ![市场首页](https://raw.githubusercontent.com/changtianfeiyun/dsh-mcp-market-hub/main/screenshots/01-market.png) | ![详情抽屉](https://raw.githubusercontent.com/changtianfeiyun/dsh-mcp-market-hub/main/screenshots/02-detail.png) |
 
 | 已安装 | 搜索结果 |
 | --- | --- |
-| ![已安装](screenshots/05-installed.png) | ![搜索](screenshots/06-search-github.png) |
+| ![已安装](https://raw.githubusercontent.com/changtianfeiyun/dsh-mcp-market-hub/main/screenshots/05-installed.png) | ![搜索](https://raw.githubusercontent.com/changtianfeiyun/dsh-mcp-market-hub/main/screenshots/06-search-github.png) |
 
 更多见 [`screenshots/`](screenshots)。
 
