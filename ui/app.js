@@ -37,6 +37,10 @@
     loading: false,
     error: '',
     installed: null,
+    installedFile: '',
+    legacyFile: '',
+    target: '',
+    managerAvailable: false,
     web: 'mcpmarket',
     detail: null,
   }
@@ -171,35 +175,64 @@
     }
     var head = '<div class="hint" style="margin-bottom:10px">' +
       esc(state.category ? '分类：' + (MS_LABEL[state.category] || state.category) : (state.q ? '搜索：' + state.q : '全部 MCP')) +
-      ' · ' + esc(state.items.length) + ' / ' + esc(state.total) + ' 条 · 第 ' + esc(state.page) + ' 页' +
+      ' · ' + esc(state.items.length) + ' / ' + esc(state.total) + ' 条 · 第 ' + esc(state.page) + ' / ' +
+      esc(Math.max(1, Number(state.pageCount) || 1)) + ' 页' +
       '</div>'
     var grid = '<div class="grid">' + state.items.map(cardMarkup).join('') + '</div>'
+    var last = Math.max(1, Number(state.pageCount) || 1)
     var pager = '<div class="pager">' +
       '<button type="button" data-act="prev"' + (state.page <= 1 ? ' disabled' : '') + '>上一页</button>' +
-      '<button type="button" data-act="next"' + (state.items.length === 0 ? ' disabled' : '') + '>下一页</button>' +
+      '<span class="pager-num">' + esc(state.page) + ' / ' + esc(last) + '</span>' +
+      '<button type="button" data-act="next"' + (state.page >= last ? ' disabled' : '') + '>下一页</button>' +
       '</div>'
     $('main').innerHTML = head + grid + pager
   }
 
+  function installedCard(row, removable) {
+    var stateText = row.liveState ? '运行中' : (row.enabled ? '已记录' : '已停用')
+    return '<div class="card" style="cursor:default">' +
+      '<div class="logo">' + esc(String(row.name || '?').slice(0, 1).toUpperCase()) + '</div>' +
+      '<div class="card-body">' +
+        '<div class="card-title">' + esc(row.name) + '</div>' +
+        '<div class="card-sub">' + esc(row.endpoint || '—') + '</div>' +
+        '<div class="card-meta"><span class="chip">' + esc(row.transport || '—') + '</span>' +
+        '<span class="chip">' + esc(stateText) + '</span>' +
+        (row.via ? '<span class="chip">' + esc(row.via) + '</span>' : '') + '</div>' +
+      '</div>' +
+      (removable ? '<div class="card-actions"><button class="btn-sm" type="button" data-act="uninstall" data-name="' + esc(row.serverName || row.key) + '">卸载</button></div>' : '') +
+      '</div>'
+  }
+
   function renderInstalled() {
-    if (!state.installed) { $('main').innerHTML = '<div class="empty">正在读取连接记录…</div>'; return }
-    var rows = state.installed.items || []
-    var head = '<div class="hint" style="margin-bottom:10px">连接文件：' + esc(state.installed.file) + ' · 共 ' + rows.length + ' 条</div>'
-    if (!rows.length) {
-      $('main').innerHTML = head + '<div class="empty">还没有从市场装过任何 MCP。左侧挑个分类，点卡片上的「安装」。</div>'
-      return
-    }
-    var list = rows.map(function (row) {
-      return '<div class="card" style="cursor:default">' +
-        '<div class="logo">' + esc(String(row.name || '?').slice(0, 1).toUpperCase()) + '</div>' +
-        '<div class="card-body">' +
-          '<div class="card-title">' + esc(row.name) + '</div>' +
-          '<div class="card-sub">' + esc(row.endpoint) + '</div>' +
-          '<div class="card-meta"><span class="chip">' + esc(row.transport) + '</span>' +
-          (row.enabled ? '' : '<span class="chip">已停用</span>') + '</div>' +
-        '</div></div>'
+    if (!state.installed) { $('main').innerHTML = '<div class="empty">正在读取安装记录…</div>'; return }
+    var payload = state.installed
+    var rows = (payload.items || []).map(function (row) {
+      var live = (payload.live || []).filter(function (entry) { return entry.name === row.serverName })[0]
+      var copy = {}
+      for (var k in row) copy[k] = row[k]
+      copy.liveState = live ? String(live.state || 'connected') : ''
+      return copy
+    })
+    var legacy = payload.legacyItems || []
+    var target = payload.target === 'mcp-manager'
+      ? 'DSH 内置 MCP 管理器（实时生效）'
+      : 'dsh-mcp-connector 连接文件（需要重载插件）'
+    var head = '<div class="hint" style="margin-bottom:10px">安装目标：' + esc(target) +
+      ' · 记录文件 <code>' + esc(payload.file || '') + '</code> · 共 ' + rows.length + ' 条</div>'
+    var failures = (payload.failures || []).map(function (row) {
+      return '<div class="hint" style="margin-bottom:6px">⚠ ' + esc(row.name) + ' 注册失败：' + esc(row.reason) + '</div>'
     }).join('')
-    $('main').innerHTML = head + '<div class="grid">' + list + '</div>'
+    if (payload.error) failures += '<div class="hint" style="margin-bottom:6px">⚠ ' + esc(payload.error) + '</div>'
+    var body = rows.length
+      ? '<div class="grid">' + rows.map(function (row) { return installedCard(row, true) }).join('') + '</div>'
+      : '<div class="empty">还没有从市场装过任何 MCP。左侧挑个分类，点卡片上的「安装」。</div>'
+    var legacyHtml = ''
+    if (legacy.length) {
+      legacyHtml = '<div class="section-title" style="margin-top:18px">dsh-mcp-connector 里的旧记录</div>' +
+        '<div class="hint" style="margin-bottom:10px">这些是别的插件写入的，本页只读取：<code>' + esc(payload.legacyFile || '') + '</code></div>' +
+        '<div class="grid">' + legacy.map(function (row) { return installedCard(row, false) }).join('') + '</div>'
+    }
+    $('main').innerHTML = head + failures + body + legacyHtml
   }
 
   function renderWeb() {
@@ -248,9 +281,11 @@
     }).then(function (payload) {
       state.items = payload.items || []
       state.total = payload.total || state.items.length
+      state.pageCount = Math.max(1, Number(payload.pageCount) || 1)
     }).catch(function (error) {
       state.items = []
       state.total = 0
+      state.pageCount = 1
       state.error = '查询失败：' + String(error.message || error)
     }).then(function () {
       state.loading = false
@@ -258,15 +293,28 @@
     })
   }
 
+  function absorbInstalled(payload) {
+    state.installedFile = String(payload.file || '')
+    state.legacyFile = String(payload.legacyFile || '')
+    state.target = String(payload.target || '')
+    state.managerAvailable = Boolean(payload.managerAvailable)
+  }
+
+  function loadInstalledFile() {
+    return get('installed').then(absorbInstalled)
+      .catch(function () { /* the drawer falls back to the default path */ })
+  }
+
   function loadInstalled() {
     state.view = 'installed'
     state.installed = null
     render()
     return get('installed').then(function (payload) {
+      absorbInstalled(payload)
       state.installed = payload
       render()
     }).catch(function (error) {
-      state.installed = { file: '', items: [] }
+      state.installed = { file: '', items: [], legacyItems: [], live: [], failures: [] }
       render()
       toast(String(error.message || error), true)
     })
@@ -348,17 +396,17 @@
             '<span>★ ' + esc(item.stars || 0) + '</span>' + (item.url ? '<a href="' + esc(item.url) + '" target="_blank" rel="noreferrer" style="color:var(--brand)">详情页</a>' : '') + '</div>' +
           (tags ? '<div class="chips" style="margin-top:4px">' + tags + '</div>' : '') +
         '</div>' +
-        '<button class="batn" type="button" style="background:transparent;border:0;color:var(--dim);font-size:16px" data-act="close">✕</button>' +
+        '<button class="drawer-close" type="button" title="关闭" aria-label="关闭" data-act="close">✕</button>' +
       '</div>' +
       '<div class="drawer-body">' +
         '<div class="section-title">说明</div>' +
         '<div class="desc">' + esc(String(item.description || item.overview || item.readme || '（无描述）').slice(0, 1600)) + '</div>' +
         '<div class="section-title">安装方式</div>' + formatsHtml +
         json +
-        '<div class="hint">点「安装到 DSH 连接器」会直接写入本机 DSH 的连接文件 ' + esc((state.installed && state.installed.file) || 'storages/mcp_connector.json') + '；重启 DSH（或在插件页重载 dsh-mcp-connector）后，这条连接才会注册成可用工具。</div>' +
+        '<div class="hint">' + installHint(payload) + '</div>' +
       '</div>' +
       '<div class="drawer-foot">' +
-        '<button class="btn-primary" type="button" data-act="install"' + (picked ? '' : ' disabled') + '>安装到 DSH 连接器</button>' +
+        '<button class="btn-primary" type="button" data-act="install"' + (picked && payload.installable !== false ? '' : ' disabled') + '>' + esc(installLabel()) + '</button>' +
         '<button class="btn" type="button" data-act="copyjson"' + (payload.importJson ? '' : ' disabled') + '>复制 JSON</button>' +
       '</div>' +
       '</div>' +
@@ -373,10 +421,31 @@
     if (!format) return
     post({ op: 'install', source: item.source, id: item.id, serverKey: format.serverKey, previewOnly: true })
       .then(function (next) {
-        state.detail = { item: item, format: next.format || format, importJson: next.importJson || null }
+        state.detail = {
+          item: item,
+          format: next.format || format,
+          importJson: next.importJson || null,
+          installable: next.installable !== false,
+          installError: String(next.installError || ''),
+        }
         renderDetail()
       })
       .catch(function (error) { toast(String(error.message || error), true) })
+  }
+
+  function installLabel() {
+    return state.managerAvailable ? '安装到 DSH' : '写入连接文件'
+  }
+
+  function installHint(payload) {
+    if (!payload.installable && payload.installError) return '这个条目装不进当前 DSH：' + esc(payload.installError)
+    if (state.managerAvailable) {
+      return 'DSH 内置的 MCP 管理器会立刻注册这条连接，装完即可在会话里调用它的工具，不用重启。' +
+        '记录保存在 <code>' + esc(state.installedFile || '~/.dsh/storages/mcp_market_hub.json') + '</code>，下次启动会自动恢复。'
+    }
+    return '当前 DSH 没有内置 MCP 管理器，只能写入 dsh-mcp-connector 的连接文件 <code>' +
+      esc(state.legacyFile || '~/.dsh/storages/mcp_connector.json') +
+      '</code>；重载该插件（或重启 DSH）后连接才会生效。'
   }
 
   function runInstall() {
@@ -384,17 +453,32 @@
     if (!payload || !payload.format) return
     var item = payload.item || {}
     var button = $('modal').querySelector('[data-act="install"]')
-    if (button) { button.disabled = true; button.textContent = '写入中…' }
+    if (button) { button.disabled = true; button.textContent = '安装中…' }
     post({ op: 'install', source: item.source, id: item.id, serverKey: payload.format.serverKey })
       .then(function (result) {
-        toast('已写入本机 DSH：' + String(result.file || '') + '（重启 DSH 后连接器才会加载它）')
+        if (result.live) {
+          toast('已注册到 DSH：' + String(result.name || '') + '，工具现在就能用。')
+        } else {
+          toast(String(result.note || ('已写入 ' + String(result.file || ''))))
+        }
         closeDetail()
         state.installed = null
+        loadInstalledFile()
       })
       .catch(function (error) {
         toast(String(error.message || error), true)
-        if (button) { button.disabled = false; button.textContent = '安装到 DSH 连接器' }
+        if (button) { button.disabled = false; button.textContent = installLabel() }
       })
+  }
+
+  function runUninstall(name) {
+    if (!name) return
+    post({ op: 'uninstall', name: name })
+      .then(function (result) {
+        toast(result.removed ? ('已卸载 ' + name) : ('没有这条安装记录：' + name), !result.removed)
+        loadInstalled()
+      })
+      .catch(function (error) { toast(String(error.message || error), true) })
   }
 
   /* ── events ───────────────────────────────────────────────────────── */
@@ -412,6 +496,7 @@
     if (act === 'detail') { openDetail(node.getAttribute('data-source'), node.getAttribute('data-id')); return }
     if (act === 'pick') { pickFormat(Number(node.getAttribute('data-index'))); return }
     if (act === 'install') { runInstall(); return }
+    if (act === 'uninstall') { runUninstall(node.getAttribute('data-name')); return }
     if (act === 'copyjson') {
       if (state.detail && state.detail.importJson) {
         navigator.clipboard.writeText(JSON.stringify(state.detail.importJson, null, 2))
@@ -421,7 +506,10 @@
       return
     }
     if (act === 'prev') { if (state.page > 1) { state.page -= 1; loadItems() } return }
-    if (act === 'next') { state.page += 1; loadItems(); return }
+    if (act === 'next') {
+      if (state.page < Math.max(1, Number(state.pageCount) || 1)) { state.page += 1; loadItems() }
+      return
+    }
   })
 
   $('btn-refresh').addEventListener('click', function () {
@@ -463,6 +551,7 @@
     if (event.key === 'Escape') closeDetail()
   })
 
+  loadInstalledFile()
   loadCategories()
   loadItems()
 })()

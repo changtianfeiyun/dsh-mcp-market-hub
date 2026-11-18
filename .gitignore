@@ -1,4 +1,5 @@
-node_modules/
 _scratch/
+_smoke/
 *.tgz
+node_modules/
 .DS_Store

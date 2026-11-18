@@ -1,9 +1,10 @@
 {
   "name": "dsh-mcp-market-hub",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
-  "description": "Browse and install MCP servers from mcpmarket.cn and ModelScope (魔搭) inside DSH",
+  "description": "Browse and install MCP servers from mcpmarket.cn and ModelScope (魔搭) inside DSH — installs register live through DSH's built-in MCP manager.",
   "license": "MIT",
+  "author": "npmjs_haoyun",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/changtianfeiyun/dsh-mcp-market-hub.git"
@@ -24,7 +25,8 @@
     "ui",
     "client.js",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "dsh",
@@ -32,10 +34,29 @@
     "deepseek-harness",
     "mcp",
     "mcp-market",
-    "modelscope"
+    "mcp-manager",
+    "modelscope",
+    "mcpmarket"
   ],
   "engines": {
-    "node": "^22.19.0 || >=24.0.0"
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.1.5-rc.2 <0.3.0-0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-tools": "^0.1.5-rc.2 || ^0.2.0-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "dsh": {
     "bundle": {
@@ -46,6 +67,7 @@
       "immediately": true,
       "inject": [
         "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
         "@deepseek-ai/dsh-client-ui-conversation"
       ]
     }
